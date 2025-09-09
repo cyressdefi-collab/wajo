@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAJO BINGO - The Official Invasion Survival Game</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
+            color: #ffffff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .title {
+            font-size: clamp(2.5rem, 8vw, 4rem);
+            font-weight: bold;
+            letter-spacing: 0.3em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ffffff, #c0c0c0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .subtitle {
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            color: #b0b0b0;
+            font-style: italic;
+        }
+
+        .bingo-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 8px;
+            margin-bottom: 30px;
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .bingo-cell {
+            aspect-ratio: 1;
+            background: rgba(0,0,0,0.4);
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 8px;
+            font-size: clamp(0.6rem, 2vw, 0.9rem);
+            line-height: 1.2;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .bingo-cell:hover {
+            transform: scale(1.05);
+            border-color: #4a90e2;
+            background: rgba(74, 144, 226, 0.2);
+        }
+
+        .bingo-cell.marked {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            border-color: #ffffff;
+            color: #ffffff;
+            transform: scale(0.95);
+        }
+
+        .bingo-cell.marked::after {
+            content: '✓';
+            position: absolute;
+            top: 5px;
+            right: 8px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .center-cell {
+            background: linear-gradient(135deg, #4a90e2, #357abd) !important;
+            color: #ffffff;
+            font-weight: bold;
+            font-size: clamp(0.8rem, 2.5vw, 1.2rem);
+            border-color: #ffffff;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4a90e2, #357abd);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(74, 144, 226, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .status {
+            text-align: center;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 10px;
+            border-left: 4px solid #4a90e2;
+        }
+
+        .bingo-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #ff6b6b, #ee5a52);
+            color: white;
+            padding: 30px 40px;
+            border-radius: 15px;
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            z-index: 1000;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            animation: bounce 0.6s ease-in-out;
+            display: none;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% {
+                transform: translate(-50%, -50%) translateY(0);
+            }
+            40%, 43% {
+                transform: translate(-50%, -50%) translateY(-20px);
+            }
+            70% {
+                transform: translate(-50%, -50%) translateY(-10px);
+            }
+            90% {
+                transform: translate(-50%, -50%) translateY(-5px);
+            }
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 999;
+            display: none;
+        }
+
+        @media (max-width: 600px) {
+            .bingo-grid {
+                gap: 4px;
+                padding: 10px;
+            }
+            
+            .bingo-cell {
+                font-size: 0.7rem;
+                padding: 4px;
+            }
+            
+            .controls {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .btn {
+                width: 200px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 class="title">WAJO BINGO</h1>
+            <p class="subtitle">The Official <em>Invasion</em> Survival Game</p>
+        </div>
+
+        <div class="status" id="status">
+            Click on squares as events happen during the show!
+        </div>
+
+        <div class="bingo-grid" id="bingoGrid">
+            <!-- Grid will be populated by JavaScript -->
+        </div>
+
+        <div class="controls">
+            <button class="btn" onclick="resetGame()">Reset Game</button>
+            <button class="btn" onclick="checkBingo()">Check Bingo</button>
+            <button class="btn" onclick="autoFill()">Auto Fill (Demo)</button>
+        </div>
+    </div>
+
+    <div class="overlay" id="overlay"></div>
+    <div class="bingo-message" id="bingoMessage">
+        🎉 BINGO! 🎉<br>
+        <div style="font-size: 1.2rem; margin-top: 10px;">You survived the invasion!</div>
+    </div>
+
+    <script>
+        const bingoSquares = [
+            'Someone says "They\'re here" or "It\'s happening"',
+            'Beautiful cinematography of people walking',
+            'A child does something dangerously stupid',
+            'Sudden, loud noise interrupts a quiet scene',
+            'Alien is barely visible in dark/blurry shot',
+            'New character introduced, then disappears',
+            'Military shows up and is completely useless',
+            'Convenient power outage or loss of signal',
+            'Cryptic drawing is the only clue',
+            'Character stares into middle distance for 10+ seconds',
+            '"LUKE! SARAH!"',
+            'Trevante looks exhausted & confused',
+            'WAJO', // Center square
+            'An entire subplot could have been an email',
+            'Human conflict is more important than the aliens',
+            'The alien artifact does something new and unexplained',
+            'A main character goes rogue',
+            'Characters *just* miss each other',
+            'Inexplicable time jump',
+            'Flashback that explains very little',
+            'Plot advances at a glacial pace',
+            'Aneesha makes a questionable decision',
+            'Someone has a seizure / psychic vision',
+            'Emotional speech to an unresponsive alien/signal',
+            'Mitsuki whispers something profound to a screen'
+        ];
+
+        let markedSquares = new Set();
+        let gameGrid = [];
+
+        function initializeGame() {
+            const grid = document.getElementById('bingoGrid');
+            grid.innerHTML = '';
+            markedSquares.clear();
+            gameGrid = [];
+
+            bingoSquares.forEach((text, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'bingo-cell';
+                cell.textContent = text;
+                cell.onclick = () => toggleSquare(index);
+                
+                if (index === 12) { // Center square
+                    cell.classList.add('center-cell');
+                    cell.classList.add('marked');
+                    markedSquares.add(index);
+                }
+                
+                grid.appendChild(cell);
+                gameGrid.push(cell);
+            });
+            
+            updateStatus();
+        }
+
+        function toggleSquare(index) {
+            if (index === 12) return; // Can't unmark center square
+            
+            const cell = gameGrid[index];
+            
+            if (markedSquares.has(index)) {
+                markedSquares.delete(index);
+                cell.classList.remove('marked');
+            } else {
+                markedSquares.add(index);
+                cell.classList.add('marked');
+            }
+            
+            updateStatus();
+            
+            // Auto-check for bingo after each move
+            setTimeout(() => {
+                if (checkForBingo()) {
+                    showBingoMessage();
+                }
+            }, 300);
+        }
+
+        function resetGame() {
+            markedSquares.clear();
+            gameGrid.forEach((cell, index) => {
+                cell.classList.remove('marked');
+                if (index === 12) {
+                    cell.classList.add('marked');
+                    markedSquares.add(index);
+                }
+            });
+            updateStatus();
+            hideBingoMessage();
+        }
+
+        function updateStatus() {
+            const status = document.getElementById('status');
+            const markedCount = markedSquares.size;
+            
+            if (markedCount === 1) {
+                status.textContent = `Ready to play! Mark squares as events happen.`;
+            } else if (markedCount < 10) {
+                status.textContent = `${markedCount} squares marked. Keep watching!`;
+            } else if (markedCount < 15) {
+                status.textContent = `${markedCount} squares marked. You're doing great!`;
+            } else {
+                status.textContent = `${markedCount} squares marked. So close to BINGO!`;
+            }
+        }
+
+        function checkForBingo() {
+            // Check rows
+            for (let row = 0; row < 5; row++) {
+                let count = 0;
+                for (let col = 0; col < 5; col++) {
+                    if (markedSquares.has(row * 5 + col)) count++;
+                }
+                if (count === 5) return true;
+            }
+            
+            // Check columns
+            for (let col = 0; col < 5; col++) {
+                let count = 0;
+                for (let row = 0; row < 5; row++) {
+                    if (markedSquares.has(row * 5 + col)) count++;
+                }
+                if (count === 5) return true;
+            }
+            
+            // Check diagonals
+            let diag1 = 0, diag2 = 0;
+            for (let i = 0; i < 5; i++) {
+                if (markedSquares.has(i * 5 + i)) diag1++;
+                if (markedSquares.has(i * 5 + (4 - i))) diag2++;
+            }
+            
+            return diag1 === 5 || diag2 === 5;
+        }
+
+        function checkBingo() {
+            if (checkForBingo()) {
+                showBingoMessage();
+            } else {
+                const status = document.getElementById('status');
+                const originalText = status.textContent;
+                status.textContent = "No BINGO yet - keep marking squares!";
+                status.style.color = '#ff6b6b';
+                setTimeout(() => {
+                    status.textContent = originalText;
+                    status.style.color = '#ffffff';
+                }, 2000);
+            }
+        }
+
+        function showBingoMessage() {
+            document.getElementById('overlay').style.display = 'block';
+            document.getElementById('bingoMessage').style.display = 'block';
+            
+            setTimeout(() => {
+                hideBingoMessage();
+            }, 3000);
+        }
+
+        function hideBingoMessage() {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('bingoMessage').style.display = 'none';
+        }
+
+        function autoFill() {
+            // Demo function to randomly fill squares for testing
+            const unmarkedSquares = [];
+            for (let i = 0; i < 25; i++) {
+                if (!markedSquares.has(i)) {
+                    unmarkedSquares.push(i);
+                }
+            }
+            
+            const toFill = Math.min(8, unmarkedSquares.length);
+            for (let i = 0; i < toFill; i++) {
+                const randomIndex = Math.floor(Math.random() * unmarkedSquares.length);
+                const squareIndex = unmarkedSquares.splice(randomIndex, 1)[0];
+                
+                setTimeout(() => {
+                    toggleSquare(squareIndex);
+                }, i * 200);
+            }
+        }
+
+        // Close bingo message when clicking overlay
+        document.getElementById('overlay').onclick = hideBingoMessage;
+
+        // Initialize the game when page loads
+        window.onload = initializeGame;
+    </script>
+</body>
+</html>
